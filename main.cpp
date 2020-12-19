@@ -12,12 +12,11 @@ int main()
 {
 	//create window
 	sf::RenderWindow window(sf::VideoMode(1100, 700), "Random Walk", sf::Style::Titlebar | sf::Style::Close);
-	//setup font & text
+	//setup font, texts, shapes for user input
 	sf::Font font;
 	if (!font.loadFromFile("../Source/good_times_rg.ttf")) {
 		std::cerr << "cannot load font2\n";
 	}
-
 	sf::Text text_input_distanse;
 	text_input_distanse.setFont(font);
 	text_input_distanse.setCharacterSize(20);
@@ -43,9 +42,17 @@ int main()
 	sf::Text text_user_input_dstep(text_input_distanse);
 	text_user_input_dstep.setString(dstep_str);
 	text_user_input_dstep.setPosition(input_dstep_field.getPosition());
+	//restart "button"
+	sf::RectangleShape button_restart(input_distance_field);
+	button_restart.setPosition(input_dstep_field.getGlobalBounds().left,
+		input_dstep_field.getGlobalBounds().top + input_dstep_field.getLocalBounds().height + vertical_shift * 5);
+	button_restart.setFillColor(sf::Color(205, 207, 209));
+	sf::Text text_button(text_input_dstep);
+	text_button.setString("Clear");
+	text_button.setPosition(button_restart.getPosition().x + button_restart.getLocalBounds().width / 3, button_restart.getPosition().y);
+
 	int target = 0;
 	int dstep = 0;
-
 	//GUI
 	sf::CircleShape circle(static_cast<float>(target));
 	sf::Vector2f circle_pos{
@@ -64,6 +71,7 @@ int main()
 	int enter_event_cnt = 0;
 	bool input_received = false;
 	bool distance_received = false;
+	bool clear_received = false;
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -72,8 +80,21 @@ int main()
 			if (event.type == sf::Event::Closed)
 				window.close();
 			if (event.type == sf::Event::TextEntered) {
-				//todo: deleting digits
+				//handle backspace
+				if (event.text.unicode == '\b') {
+					if (enter_event_cnt == 0) {
+						if (distance_str.size() > 0)
+							distance_str.erase(std::prev(distance_str.end()), distance_str.end());
+						text_user_input_distance.setString(distance_str);
+					}
+					else {
+						if (dstep_str.size() > 0)
+							dstep_str.erase(std::prev(dstep_str.end()), dstep_str.end());
+						text_user_input_dstep.setString(dstep_str);
+					}
+				}
 				if ((event.text.unicode < 48 || event.text.unicode > 57) && event.text.unicode != 13) break;
+				//handle digits
 				if (event.text.unicode != 13) {
 					if (enter_event_cnt == 0) {
 						distance_str.push_back(static_cast<char>(event.text.unicode));
@@ -84,8 +105,10 @@ int main()
 						text_user_input_dstep.setString(dstep_str);
 					}
 				}
-				else if (event.text.unicode == 13) {
+				else {
+					//handle enter
 					enter_event_cnt++;
+					clear_received = false;
 					if (enter_event_cnt == 1) {
 						distance_received = true;
 						target = std::stoi(distance_str);
@@ -95,6 +118,9 @@ int main()
 				if (event.text.unicode == 13 && enter_event_cnt == 2) {
 					input_received = true;
 					dstep = std::stoi(dstep_str);
+					if (target == 0 || dstep == 0) {
+						//todo: handle this case
+					}
 					Path path;
 					VECTOR::Vector finish = process_path(path, target * 1.0, dstep * 1.0);
 					std::stringstream out;
@@ -118,21 +144,41 @@ int main()
 					}
 				}
 			}
+			if (event.type == sf::Event::MouseButtonPressed) {
+				if (event.mouseButton.button == sf::Mouse::Left) {
+					if (button_restart.getGlobalBounds().contains(event.mouseButton.x, event.mouseButton.y)) {
+						clear_received = true;
+						target = 0;
+						dstep = 0;
+						distance_str.clear();
+						text_user_input_distance.setString(distance_str);
+						dstep_str.clear();
+						text_user_input_dstep.setString(dstep_str);
+						enter_event_cnt = 0;
+						input_received = false;
+						distance_received = false;
+					}
+				}
+			}
 		}
 
 		window.clear(sf::Color::White);
 		window.draw(text_input_distanse);
 		window.draw(input_distance_field);
 		window.draw(text_user_input_distance);
-		if (distance_received) {
-			window.draw(text_input_dstep);
-			window.draw(input_dstep_field);
-			window.draw(text_user_input_dstep);
-		}
-		if (input_received) {
-			window.draw(user_output);
-			window.draw(circle);
-			window.draw(&vertexes[0], vertexes.size(), sf::LineStrip);
+		if (!clear_received) {
+			if (distance_received) {
+				window.draw(text_input_dstep);
+				window.draw(input_dstep_field);
+				window.draw(text_user_input_dstep);
+			}
+			if (input_received) {
+				window.draw(user_output);
+				window.draw(circle);
+				window.draw(&vertexes[0], vertexes.size(), sf::LineStrip);
+				window.draw(button_restart);
+				window.draw(text_button);
+			}
 		}
 		window.display();
 	}
