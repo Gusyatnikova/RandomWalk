@@ -12,6 +12,11 @@ VECTOR::Vector process_path(Path& path, double target, double dstep)
 	Vector step;
 	Vector result(0.0, 0.0);
 	while (result.magval() < target) {
+		auto test = result.magval();
+		if (test > 90) {
+			bool test_stop = true;
+		}
+		//todo: when many steps the error is accummuldte. check 100 and 1
 		direction = std::rand() % 360;
 		step.reset(dstep, direction, Vector::POL);
 		result = result + step;
