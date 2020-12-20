@@ -116,31 +116,30 @@ int main()
 					}
 				}
 				if (event.text.unicode == 13 && enter_event_cnt == 2) {
-					input_received = true;
 					dstep = std::stoi(dstep_str);
-					if (target == 0 || dstep == 0) {
-						//todo: handle this case
-					}
-					Path path;
-					VECTOR::Vector finish = process_path(path, target * 1.0, dstep * 1.0);
-					std::stringstream out;
-					out << "After " << path.size() << " steps,\nthe subject's "
-						<< "location\n(relative to the center)\nis:"
-						<< finish << "\n";
-					user_output.setString(out.str());
-					user_output.setFillColor(sf::Color::Black);
-					user_output.setPosition(text_user_input_dstep.getGlobalBounds().left,
-						text_user_input_dstep.getGlobalBounds().top + text_user_input_dstep.getLocalBounds().height + vertical_shift);
-					//create vertex array from path
-					vertexes.resize(path.size() + 1);
-					vertexes[0] = (sf::Vertex(
-						{ static_cast<float>(circle.getPosition().x + circle.getRadius()), static_cast<float>(circle.getPosition().y + circle.getRadius()) }));
-					vertexes[0].color = sf::Color::Blue;
-					for (unsigned int i = 0; i < vertexes.size() - 1; ++i) {
-						vertexes[i + 1] = (sf::Vertex(sf::Vector2f(
-							static_cast<float>(path[i].first + circle.getPosition().x + circle.getRadius()),
-							static_cast<float>(path[i].second + circle.getPosition().y + circle.getRadius()))));
-						vertexes[i + 1].color = sf::Color::Blue;
+					if (!(target == 0 || dstep == 0)) {
+						input_received = true;
+						Path path;
+						VECTOR::Vector finish = process_path(path, target * 1.0, dstep * 1.0);
+						std::stringstream out;
+						out << "After " << path.size() << " steps,\nthe subject's "
+							<< "location\n(relative to the center)\nis:"
+							<< finish << "\n";
+						user_output.setString(out.str());
+						user_output.setFillColor(sf::Color::Black);
+						user_output.setPosition(text_user_input_dstep.getGlobalBounds().left,
+							text_user_input_dstep.getGlobalBounds().top + text_user_input_dstep.getLocalBounds().height + vertical_shift);
+						//create vertex array from path
+						vertexes.resize(path.size() + 1);
+						vertexes[0] = (sf::Vertex(
+							{ static_cast<float>(circle.getPosition().x + circle.getRadius()), static_cast<float>(circle.getPosition().y + circle.getRadius()) }));
+						vertexes[0].color = sf::Color::Blue;
+						for (unsigned int i = 0; i < vertexes.size() - 1; ++i) {
+							vertexes[i + 1] = (sf::Vertex(sf::Vector2f(
+								static_cast<float>(path[i].first + circle.getPosition().x + circle.getRadius()),
+								static_cast<float>(path[i].second + circle.getPosition().y + circle.getRadius()))));
+							vertexes[i + 1].color = sf::Color::Blue;
+						}
 					}
 				}
 			}
@@ -166,20 +165,18 @@ int main()
 		window.draw(text_input_distanse);
 		window.draw(input_distance_field);
 		window.draw(text_user_input_distance);
+		window.draw(text_input_dstep);
+		window.draw(input_dstep_field);
+		window.draw(text_user_input_dstep);
 		if (!clear_received) {
-			if (distance_received) {
-				window.draw(text_input_dstep);
-				window.draw(input_dstep_field);
-				window.draw(text_user_input_dstep);
-			}
 			if (input_received) {
 				window.draw(user_output);
 				window.draw(circle);
 				window.draw(&vertexes[0], vertexes.size(), sf::LineStrip);
-				window.draw(button_restart);
-				window.draw(text_button);
 			}
 		}
+		window.draw(button_restart);
+		window.draw(text_button);
 		window.display();
 	}
 
